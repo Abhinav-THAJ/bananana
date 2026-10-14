@@ -150,7 +150,7 @@ export default function CuratedCollectionsSection({ collections }: CuratedCollec
 
               {/* Right Column on Laptop: Collection Details & Full-Width / Inline CTA */}
               <div className="flex flex-col justify-center py-0.5 sm:py-1 md:py-2 px-0.5 sm:px-1">
-                <span 
+                <span
                   className="text-brand-gold-muted text-[9px] sm:text-[10px] md:text-[11px] uppercase font-bold tracking-[0.18em] block mb-0.5 sm:mb-1"
                   style={{ fontFamily: 'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
                 >
@@ -200,11 +200,10 @@ export default function CuratedCollectionsSection({ collections }: CuratedCollec
                   key={col.id}
                   onClick={() => setCurrentIndex(idx)}
                   aria-label={`Go to ${col.name}`}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    idx === currentIndex
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
                       ? "w-8 bg-brand-gold"
                       : "w-2 bg-brand-forest/20 hover:bg-brand-forest/40"
-                  }`}
+                    }`}
                 />
               ))}
             </div>
