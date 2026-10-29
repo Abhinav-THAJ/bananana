@@ -107,39 +107,53 @@ export default function CheckoutPage() {
 
       // 3. Initialize Razorpay Modal
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TAbIjFoha8ECM8", // Using the live key
+        key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TtKNDpc5rejEGy",
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Bananana",
         description: "Premium Kerala Heritage Menswear",
         order_id: orderData.id,
         handler: async function (response: any) {
-          toast.success("Payment successful! Syncing order...");
+          setLoading(true);
+          const syncToastId = toast.loading("Payment successful! Syncing order...");
           
-          // 4. Send successful payment to WooCommerce
-          const syncResponse = await fetch("/api/woocommerce/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...formData,
-              items: cart,
-              shippingFee,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-            }),
-          });
+          try {
+            // 4. Send successful payment to WooCommerce
+            const syncResponse = await fetch("/api/woocommerce/checkout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...formData,
+                items: cart,
+                shippingFee,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
 
-          const syncData = await syncResponse.json();
-          if (syncData.success) {
-            clearCart();
-            toast.success("Order confirmed successfully!");
-            router.push("/");
-          } else {
-            toast.error("Payment received, but order sync failed. Contact support.");
+            const syncData = await syncResponse.json();
+            if (syncData.success) {
+              clearCart();
+              toast.success("Order confirmed successfully!", { id: syncToastId });
+              router.push("/");
+            } else {
+              toast.error(syncData.error || "Payment received, but order sync failed. Contact support.", { id: syncToastId });
+            }
+          } catch (syncErr: any) {
+            console.error(syncErr);
+            toast.error("Payment received, but order sync failed. Contact support.", { id: syncToastId });
+          } finally {
+            setLoading(false);
           }
         },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
         prefill: {
-          name: `${formData.firstName} ${formData.lastName}`,
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
           contact: formData.phone,
         },
@@ -149,11 +163,14 @@ export default function CheckoutPage() {
       };
 
       const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on("payment.failed", function (response: any) {
+        toast.error(response?.error?.description || "Payment failed. Please try again.");
+        setLoading(false);
+      });
       paymentObject.open();
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Something went wrong.");
-    } finally {
       setLoading(false);
     }
   };
@@ -227,8 +244,8 @@ export default function CheckoutPage() {
             <h2 className="font-serif text-2xl font-bold text-brand-charcoal mb-6">Your Order</h2>
             
             <div className="space-y-4 mb-6">
-              {cart.map(item => (
-                <div key={item.id} className="flex gap-4 items-center border-b border-brand-charcoal/10 pb-4">
+              {cart.map((item, index) => (
+                <div key={item.cartItemId || `${item.id}-${item.size || index}`} className="flex gap-4 items-center border-b border-brand-charcoal/10 pb-4">
                   <div className="relative w-16 h-20 bg-white rounded-sm overflow-hidden flex-shrink-0">
                      <Image src={item.imageSrc} alt={item.name} fill className="object-cover" />
                   </div>

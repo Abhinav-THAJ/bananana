@@ -44,8 +44,8 @@ export default function CartPage() {
       <div className="grid lg:grid-cols-3 gap-12">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-6">
-          {cart.map((item) => (
-            <div key={item.id} className="flex gap-6 p-4 border border-brand-charcoal/10 rounded-sm bg-white">
+          {cart.map((item, index) => (
+            <div key={item.cartItemId || `${item.id}-${item.size || index}`} className="flex gap-6 p-4 border border-brand-charcoal/10 rounded-sm bg-white">
               <Link href={`/product/${item.slug}`} className="relative w-24 h-32 flex-shrink-0 bg-brand-offwhite">
                 <Image src={item.imageSrc} alt={item.name} fill className="object-cover" />
               </Link>

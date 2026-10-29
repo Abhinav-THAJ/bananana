@@ -34,7 +34,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const savedCart = localStorage.getItem("bananana_cart");
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          const normalized = parsed.map((item: CartItem, idx: number) => ({
+            ...item,
+            cartItemId: item.cartItemId || `${item.id}-${item.size || "default"}-${idx}`,
+          }));
+          setCart(normalized);
+        }
       } catch (e) {
         console.error("Failed to parse cart", e);
       }
